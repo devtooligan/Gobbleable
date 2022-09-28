@@ -3,8 +3,6 @@ pragma solidity 0.8.17;
 
 
 interface IGobbleable {
-    //TODO: Cast this
-
     function addGoo(uint256 gooAmount) external;
     function approve(address spender, uint256 id) external;
     function burnGooForPages(address user, uint256 gooAmount) external;

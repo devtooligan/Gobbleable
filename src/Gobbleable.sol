@@ -7,8 +7,6 @@ import {IGooStew} from "./IGooStew.sol";
 import {Operated} from "./Operated.sol";
 import {IERC20} from "openzeppelin-contracts/interfaces/IERC20.sol";
 
-import "forge-std/console.sol"; // DELETE ME !!!!!
-
 /*
 
                                                  _.------.
@@ -68,7 +66,6 @@ contract Gobbleable is Operated {
         _;
     }
 
-    // todo: change to Params
     constructor(IERC20 goo_, IGooStew goostew_, IArtGobblers gobblers_, uint256 id_, address operator_, uint256 gooamount)
         Operated(operator_)
     {
