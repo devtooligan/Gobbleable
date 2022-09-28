@@ -1,9 +1,20 @@
 {
-  "solidity.packageDefaultDependenciesContractsDirectory": "src",
-  "solidity.packageDefaultDependenciesDirectory": "lib",
-  "solidity.compileUsingRemoteVersion": "v0.8.15",
-  "search.exclude": { "lib": true },
-  "files.associations": {
-    ".gas-snapshot": "julia"
+    "workbench.colorCustomizations": {
+      "titleBar.activeForeground": "#84ff8d",
+      "titleBar.inactiveForeground": "#84ff8d",
+      "titleBar.activeBackground": "#e30000",
+      "titleBar.inactiveBackground": "#e30000"
+    },
+    "editor.tokenColorCustomizations": {
+      "textMateRules": [
+          {
+              "scope": [
+                  "comment",
+              ],
+              "settings": {
+                  "fontStyle": "",
+              }
+          }
+      ]
+    }
   }
-}
