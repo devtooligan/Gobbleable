@@ -85,13 +85,12 @@ contract Gobbleable is Operated {
 
     /// @dev Wraps Gobbler in distortion field allowing it to be gobbled by other Gobblers
     function wrap() external onlyOperator unwrapped {
+        owner = gobblers.ownerOf(id);
         gobblers.safeTransferFrom(operator, address(this), id);
         goo.approve(owner, type(uint256).max); //approve max to address(0)? maybe it should be address(this)?
         goo.approve(address(goostew), type(uint256).max);
         goo.approve(address(gobblers), type(uint256).max);
         gobblers.approve(address(goostew), id);
-        owner = gobblers.ownerOf(id); //the owner is this contract. ln 122 says this shouldn't be the case. set this to the operator? maybe its the owner before its transferred to this contract?
-        emit GooMorning();
     }
 
     /* GOO DISCHARGE PORTAL FUNCTIONS
