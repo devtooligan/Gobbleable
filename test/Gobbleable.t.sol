@@ -103,7 +103,7 @@ contract ArtGobblersTest is Test {
         vm.stopPrank();
     }
 
-    /// @notice Test that gobblers can't eat other gobblers
+    /// @notice Test that gobblers can eat other gobblers via Gobbleable
     function testCanFeedGobbleables() public {
         address user = users[0];
         mintGobblerToAddress(user, 2);
@@ -141,6 +141,7 @@ contract ArtGobblersTest is Test {
         gobblers.gobble(2, address(gobbleable), 1, false);
         gobbleable.gooStewDeposit(0);
         gobbleable.gooStewRedeemGobbler();
+        vm.stopPrank();
     }
 
     function testRetrieveGoo() public {
@@ -186,8 +187,7 @@ contract ArtGobblersTest is Test {
         gobbleable.mintFromGoo(type(uint256).max, false);
         vm.stopPrank();
 
-        //assertEq(gobblers.balanceOf(user), gobblers.balanceOf(owner)); //this fails
-        assertEq(gobblers.balanceOf(owner), gobblers.balanceOf(address(gobbleable))); //this succeeds. gobbleable is owner.
+        assertEq(gobblers.balanceOf(owner), 2);
     }
 
     /*//////////////////////////////////////////////////////////////

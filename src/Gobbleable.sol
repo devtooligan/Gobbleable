@@ -130,7 +130,7 @@ contract Gobbleable is Operated {
 
     /// @dev this transfers goo tokens out of this contract
     function retrieveGoo(uint256 gooAmount, address to) external onlyOperator {
-        goo.transfer(to, gooAmount); //prevent transfers to this contract?
+        goo.transfer(to, gooAmount);
     }
 
     /// @dev this fn is used by ArtGobblers.gobble() when being gobbled by another Gobbler.
