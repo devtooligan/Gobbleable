@@ -140,7 +140,7 @@ contract Gobbleable is Operated {
         address to,
         uint256 id_
     ) external {
-        //looks like anyone can call this outside of the ArtGobble Contract potentially trapping the gobblealble
+        require(msg.sender == address(gobblers), "ONLY ARTGOBBLERS CAN CALL");
         require(id_ == id && from == operator && to == address(gobblers), "ONLY ARTGOBBLERS");
         owner = to; // address(gobblers)
         emit Gobbled();
