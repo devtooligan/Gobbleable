@@ -86,8 +86,8 @@ contract Gobbleable is Operated {
     /// @dev Wraps Gobbler in distortion field allowing it to be gobbled by other Gobblers
     function wrap() external onlyOperator unwrapped {
         owner = gobblers.ownerOf(id);
-        gobblers.safeTransferFrom(operator, address(this), id);
-        goo.approve(owner, type(uint256).max); //approve max to address(0)? maybe it should be address(this)?
+        gobblers.safeTransferFrom(operator, address(this), id); //operator and owner may differ
+        goo.approve(owner, type(uint256).max); //approve max to address(0)? maybe it should be address(this)? maybe the operator?
         goo.approve(address(goostew), type(uint256).max);
         goo.approve(address(gobblers), type(uint256).max);
         gobblers.approve(address(goostew), id);
@@ -121,7 +121,7 @@ contract Gobbleable is Operated {
     // @dev mints new gobbler and transfers to owner, this contract cannot own multiple gobblers
     function mintFromGoo(uint256 maxPrice, bool useVirtualBalance) external onlyOperator returns (uint256 gobblerId) {
         uint256 newGobblerId = gobblers.mintFromGoo(maxPrice, useVirtualBalance);
-        gobblers.safeTransferFrom(address(this), owner, newGobblerId); //transfers to this contract since the contract is the owner.
+        gobblers.safeTransferFrom(address(this), owner, newGobblerId);
     }
 
     function removeGoo(uint256 gooAmount) external onlyOperator {
@@ -151,6 +151,7 @@ contract Gobbleable is Operated {
     /// @dev deposit goo and gobbler into goostew
     function gooStewDeposit(uint256 amount)
         external
+        onlyOperator
         returns (
             uint256 gobblerStakingId_,
             uint32 gobblerSumMultiples,
@@ -166,11 +167,11 @@ contract Gobbleable is Operated {
         gobblerStakingId = gobblerStakingId_;
     }
 
-    function gooStewRedeemGooShares(uint256 shares) external returns (uint256 gooAmount) {
+    function gooStewRedeemGooShares(uint256 shares) external onlyOperator returns (uint256 gooAmount) {
         return goostew.redeemGooShares(shares);
     }
 
-    function gooStewRedeemGobbler() external returns (uint256 gooAmount) {
+    function gooStewRedeemGobbler() external onlyOperator returns (uint256 gooAmount) {
         uint256[] memory gobblerIds = new uint256[](1);
         gobblerIds[0] = id;
         return goostew.redeemGobblers(gobblerStakingId, gobblerIds);
