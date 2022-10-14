@@ -61,14 +61,19 @@ contract Gobbleable is Operated {
     event Gobbled();
     event GooMorning();
 
-    modifier unwrapped {
+    modifier unwrapped() {
         require(owner == address(0), "ALREADY WRAPPED");
         _;
     }
 
-    constructor(IERC20 goo_, IGooStew goostew_, IArtGobblers gobblers_, uint256 id_, address operator_, uint256 gooamount)
-        Operated(operator_)
-    {
+    constructor(
+        IERC20 goo_,
+        IGooStew goostew_,
+        IArtGobblers gobblers_,
+        uint256 id_,
+        address operator_,
+        uint256 gooamount
+    ) Operated(operator_) {
         goo = goo_;
         gobblers = gobblers_;
         goostew = goostew_;
@@ -80,23 +85,26 @@ contract Gobbleable is Operated {
 
     /// @dev Wraps Gobbler in distortion field allowing it to be gobbled by other Gobblers
     function wrap() external onlyOperator unwrapped {
-        gobblers.safeTransferFrom(operator, address(this), id);
-        goo.approve(owner, type(uint256).max);
+        owner = gobblers.ownerOf(id);
+        gobblers.safeTransferFrom(operator, address(this), id); //operator and owner may differ
+        goo.approve(owner, type(uint256).max); //approve max to address(0)? maybe it should be address(this)? maybe the operator?
         goo.approve(address(goostew), type(uint256).max);
         goo.approve(address(gobblers), type(uint256).max);
         gobblers.approve(address(goostew), id);
-        owner = gobblers.ownerOf(id);
-        emit GooMorning();
     }
 
     /* GOO DISCHARGE PORTAL FUNCTIONS
-    ******************************************************************************************************************/
+     ******************************************************************************************************************/
 
     function addGoo(uint256 gooAmount) external onlyOperator {
         return gobblers.addGoo(gooAmount);
     }
 
-    function gobble(address nft, uint256 nftId, bool isERC1155) external onlyOperator {
+    function gobble(
+        address nft,
+        uint256 nftId,
+        bool isERC1155
+    ) external onlyOperator {
         return gobblers.gobble(id, nft, nftId, isERC1155);
     }
 
@@ -126,19 +134,29 @@ contract Gobbleable is Operated {
     }
 
     /// @dev this fn is used by ArtGobblers.gobble() when being gobbled by another Gobbler.
-    function transferFrom(address from, address to, uint256 id_) external {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 id_
+    ) external {
+        require(msg.sender == address(gobblers), "ONLY ARTGOBBLERS CAN CALL");
         require(id_ == id && from == operator && to == address(gobblers), "ONLY ARTGOBBLERS");
         owner = to; // address(gobblers)
         emit Gobbled();
     }
 
     /* GOOSTEW FUNCTIONS
-    ******************************************************************************************************************/
+     ******************************************************************************************************************/
 
     /// @dev deposit goo and gobbler into goostew
     function gooStewDeposit(uint256 amount)
         external
-        returns (uint256 gobblerStakingId_, uint32 gobblerSumMultiples, uint256 gooShares)
+        onlyOperator
+        returns (
+            uint256 gobblerStakingId_,
+            uint32 gobblerSumMultiples,
+            uint256 gooShares
+        )
     {
         if (amount > 0) {
             goo.transferFrom(msg.sender, address(this), amount);
@@ -149,28 +167,38 @@ contract Gobbleable is Operated {
         gobblerStakingId = gobblerStakingId_;
     }
 
-    function gooStewRedeemGooShares(uint256 shares) external returns (uint256 gooAmount) {
+    function gooStewRedeemGooShares(uint256 shares) external onlyOperator returns (uint256 gooAmount) {
         return goostew.redeemGooShares(shares);
     }
 
-    function gooStewRedeemGobbler() external returns (uint256 gooAmount) {
+    function gooStewRedeemGobbler() external onlyOperator returns (uint256 gooAmount) {
         uint256[] memory gobblerIds = new uint256[](1);
         gobblerIds[0] = id;
         return goostew.redeemGobblers(gobblerStakingId, gobblerIds);
     }
 
     /* DISABLED FUNCTIONS
-    ******************************************************************************************************************/
+     ******************************************************************************************************************/
     function approve(address spender, uint256 id_) external {
         revert InvalidActionForGobbleableGobbler();
     }
 
     /// @dev To gobble, use function "gobble(address nft, uint256 id_, bool isERC1155) external"
-    function gobble(uint256 gobblerId, address nft, uint256 id_, bool isERC1155) external {
+    function gobble(
+        uint256 gobblerId,
+        address nft,
+        uint256 id_,
+        bool isERC1155
+    ) external {
         revert InvalidActionForGobbleableGobbler();
     }
 
-    function safeTransferFrom(address from, address to, uint256 id_, bytes memory data) external {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id_,
+        bytes memory data
+    ) external {
         revert InvalidActionForGobbleableGobbler();
     }
 
@@ -178,11 +206,20 @@ contract Gobbleable is Operated {
         revert InvalidActionForGobbleableGobbler();
     }
 
-    function safeTransferFrom(address from, address to, uint256 id_) external {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id_
+    ) external {
         revert InvalidActionForGobbleableGobbler();
     }
 
-    function onERC721Received(address, address, uint256, bytes calldata) external virtual returns (bytes4) {
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
         return this.onERC721Received.selector;
     }
 
@@ -205,8 +242,12 @@ contract Gobbleable is Operated {
 
             switch success
             // delegatecall returns 0 on error.
-            case 0 { revert(0, returndatasize()) }
-            default { return(0, returndatasize()) }
+            case 0 {
+                revert(0, returndatasize())
+            }
+            default {
+                return(0, returndatasize())
+            }
         }
     }
 }

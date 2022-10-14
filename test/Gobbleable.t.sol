@@ -22,10 +22,10 @@ import {IArtGobblers} from "../src/IArtGobblers.sol";
 import {IGooStew} from "../src/IGooStew.sol";
 import {IERC20} from "openzeppelin-contracts/interfaces/IERC20.sol";
 import {GooStew} from "lib/goostew/src/GooStew.sol";
+
 /// @notice Unit test for Art Gobbler Contract.
 contract ArtGobblersTest is Test {
     using LibString for uint256;
-
 
     Utilities internal utils;
     address payable[] internal users;
@@ -89,7 +89,6 @@ contract ArtGobblersTest is Test {
         stew = new GooStew(address(gobblers), address(goo));
     }
 
-
     /*//////////////////////////////////////////////////////////////
                                FEEDING ART
     //////////////////////////////////////////////////////////////*/
@@ -104,7 +103,7 @@ contract ArtGobblersTest is Test {
         vm.stopPrank();
     }
 
-    /// @notice Test that gobblers can't eat other gobblers
+    /// @notice Test that gobblers can eat other gobblers via Gobbleable
     function testCanFeedGobbleables() public {
         address user = users[0];
         mintGobblerToAddress(user, 2);
@@ -116,6 +115,7 @@ contract ArtGobblersTest is Test {
             user,
             0
         );
+
         vm.startPrank(user);
         gobblers.approve(address(gobbleable), 1);
         gobbleable.wrap();
@@ -134,15 +134,61 @@ contract ArtGobblersTest is Test {
             user,
             0
         );
+
         vm.startPrank(user);
         gobblers.approve(address(gobbleable), 1);
         gobbleable.wrap();
         gobblers.gobble(2, address(gobbleable), 1, false);
         gobbleable.gooStewDeposit(0);
         gobbleable.gooStewRedeemGobbler();
+        vm.stopPrank();
     }
 
+    function testRetrieveGoo() public {
+        address user = users[0];
+        mintGobblerToAddress(user, 2);
+        Gobbleable gobbleable = new Gobbleable(
+            IERC20(address(goo)),
+            IGooStew(address(stew)),
+            IArtGobblers(address(gobblers)),
+            1,
+            user,
+            0
+        );
 
+        mintGooToAddress(address(gobbleable));
+        vm.startPrank(user);
+        gobblers.approve(address(gobbleable), 1);
+        gobbleable.wrap();
+        gobbleable.retrieveGoo(1, user);
+        vm.stopPrank();
+    }
+
+    function testMintFromGoo() public {
+        address user = users[0];
+        mintGobblerToAddress(user, 2);
+        Gobbleable gobbleable = new Gobbleable(
+            IERC20(address(goo)),
+            IGooStew(address(stew)),
+            IArtGobblers(address(gobblers)),
+            1,
+            user,
+            0
+        );
+
+        mintGooToAddress(address(gobbleable));
+
+        vm.startPrank(user);
+        gobblers.approve(address(gobbleable), 1);
+        gobbleable.wrap();
+
+        address owner = gobbleable.owner();
+
+        gobbleable.mintFromGoo(type(uint256).max, false);
+        vm.stopPrank();
+
+        assertEq(gobblers.balanceOf(owner), 2);
+    }
 
     /*//////////////////////////////////////////////////////////////
                                  HELPERS
@@ -150,7 +196,7 @@ contract ArtGobblersTest is Test {
 
     /// @notice Mint a number of gobblers to the given address
     function mintGobblerToAddress(address addr, uint256 num) internal {
-        for (uint256 i = 0; i < num; ++i) {
+        for (uint256 i; i < num; ++i) {
             vm.startPrank(address(gobblers));
             goo.mintForGobblers(addr, gobblers.gobblerPrice());
             vm.stopPrank();
@@ -164,4 +210,10 @@ contract ArtGobblersTest is Test {
         }
     }
 
+    /// @notice Mint an amount of goo to the given address
+    function mintGooToAddress(address addr) internal {
+        vm.startPrank(address(gobblers));
+        goo.mintForGobblers(addr, gobblers.gobblerPrice());
+        vm.stopPrank();
+    }
 }
